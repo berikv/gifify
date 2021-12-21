@@ -9,9 +9,7 @@ For gifify you'll need [ffmpeg](https://ffmpeg.org/download.html) and [rust](htt
 On mac, using homebrew:
 
     $ brew install ffmpeg rust
-    $ git clone https://github.com/berikv/gifify.git 
-    $ cd gifify
-    $ cargo install --path .
+    $ cargo install gifify
 
 ## Usage
 
