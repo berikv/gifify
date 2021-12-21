@@ -1,9 +1,6 @@
-
-use std::fs;
-use structopt::StructOpt;
 use std::path::PathBuf;
 use std::process::Command;
-use std::env::temp_dir;
+use structopt::StructOpt;
 
 #[derive(StructOpt)]
 struct CommandLineArguments {
@@ -11,63 +8,103 @@ struct CommandLineArguments {
     #[structopt(parse(from_os_str))]
     input_file: PathBuf,
 
-    // Output file
-    #[structopt(short="o", parse(from_os_str))]
+    /// Output file
+    #[structopt(short = "o", parse(from_os_str))]
     output_file: Option<PathBuf>,
 
-    // Create a Webm instead of a gif, since its almost 2022
+    /// Create a Webm instead of a gif, since its almost 2022
     #[structopt(long)]
     webm: bool,
+
+    /// Exact width in pixels of the generated gif
+    #[structopt(long, default_value = "320")]
+    width: i32,
+
+    /// Exact height in pixels of the generated gif, default value is '-1' which
+    /// keeps the aspect ratio of the input file
+    #[structopt(long, default_value = "-1")]
+    height: i32,
+    
+    /// Make it big, overwrites the `width` argument
+    #[structopt(long)]
+    big: bool,
+
+    /// Don't resize, overwrites the `width`, `height` and `big` arguments
+    #[structopt(long)]
+    keep_size: bool,
+
+    /// Set the framerate (default is 10)
+    #[structopt(long, default_value = "10")]
+    framerate: u32,
+
+    /// Don't adjust the framerate, overwrites the `framerate` argument
+    #[structopt(long)]
+    keep_framerate: bool,
 }
 
 fn main() {
     let args = CommandLineArguments::from_args();
     let mut default_output_file = args.input_file.clone();
-    default_output_file.set_extension(if args.webm {"webm"} else {"gif"});
+    default_output_file.set_extension(if args.webm { "webm" } else { "gif" });
     let output_file = args.output_file.unwrap_or(default_output_file);
 
-    println!("in {} out {}", args.input_file.display(), output_file.display());
-    ffmpeg_command(args.input_file, output_file);
+    let width = if args.big { 640 } else { args.width };
+
+    println!(
+        "in {} out {}",
+        args.input_file.display(),
+        output_file.display()
+    );
+
+    ffmpeg_command(
+        args.input_file,
+        output_file,
+        if args.keep_size { -1 } else { width },
+        if args.keep_size { -1 } else { args.height },
+        if args.keep_framerate {
+            None
+        } else {
+            Some(args.framerate)
+        },
+    );
 }
 
-fn ffmpeg_command(input_file: PathBuf, output_file: PathBuf) {
-    let filter = "fps=10,scale=320:-1:flags=lanczos";
-    let vf = filter.to_owned() + ",palettegen";
-    let lavfi = filter.to_owned() + " [x]; [x][1:v] paletteuse";
+fn ffmpeg_command(
+    input_file: PathBuf,
+    output_file: PathBuf,
+    width: i32,
+    height: i32,
+    framerate: Option<u32>,
+) {
+    // Filter graph definition inspired by https://superuser.com/questions/556029/how-do-i-convert-a-video-to-gif-using-ffmpeg-with-reasonable-quality/
+    
+    let fps_filter = framerate.map(|s| format!("fps={}", s));
 
-    let mut tmp_filename = input_file.to_owned();
-    tmp_filename.set_extension("png");
-    let tmpfile = temp_dir().with_file_name(tmp_filename.file_name().unwrap());
+    let scale_filter = if width == -1 && height == -1 {
+        None
+    } else {
+        Some(format!("scale={}:{}:flags=lanczos", width, height))
+    };
 
-    println!("Create palette file {}", tmpfile.display());
+    let palette_filter = Some("split[s0][s1];[s0]palettegen[p];[s1][p]paletteuse".to_string());
 
-    let status = Command::new("ffmpeg")
-        .arg("-i").arg(&input_file)
-        .arg("-vf").arg(&vf)
-        .arg("-nostdin")
-        .arg("-n") // don't overwrite
-        .arg(&tmpfile)
-        .status()
-        .expect("failed to create palette");
+    let filters = vec![fps_filter, scale_filter, palette_filter];
 
-    if !status.success() {
-        panic!("Failed to create palette")
-    }
+    let filtergraph = filters
+        .into_iter()
+        .filter(|filter| filter.is_some())
+        .map(|filter| filter.unwrap())
+        .collect::<Vec<String>>()
+        .join(",");
 
-    // Having this handler removes the tmpfile if ctrl-c is pressed.
-    // I can't explain why though.. Probably something related to forks.
-    ctrlc::set_handler(move || println!("Stopping for Ctrl-C"))
-        .expect("Error setting Ctrl-C handler");
+    println!("Filter graph: {}", filtergraph);
 
     let _ = Command::new("ffmpeg")
-        .arg("-i").arg(&input_file)
-        .arg("-i").arg(&tmpfile)
-        .arg("-lavfi").arg(&lavfi)
+        .arg("-i")
+        .arg(&input_file)
+        .arg("-vf")
+        .arg(filtergraph)
         .arg(&output_file)
         .status()
-        .expect("failed to create gif");
-
-    println!("Removing palette file {}", tmpfile.display());
-    fs::remove_file(tmpfile)
-        .expect("Could not remove temporary file")
+        .expect("Failed to create gif");
 }
