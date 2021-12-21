@@ -5,6 +5,7 @@ edition = "2018"
 authors = ["Berik Visschers <berik@visschers.nu>"]
 description = "Encode a movie file to gif, specialized for demos, feature presentations, bug reports etc."
 license-file = "LICENSE"
+repository = "https://github.com/berikv/gifify"
 
 [dependencies]
 structopt = "0.3"
