@@ -21,3 +21,7 @@ On mac, using homebrew:
     # Make a webm instead of a gif.
     # Webm is much smaller than gif, but STILL not fully supported on Apple devices.
     gifify --webm Cat.mov -o canihazcheeze.webm
+
+## Mandatory cat gif
+
+![Can I HAZ CHEEZE](IMG_7606.gif)
