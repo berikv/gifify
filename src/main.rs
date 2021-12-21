@@ -20,8 +20,7 @@ struct CommandLineArguments {
     #[structopt(long, default_value = "320")]
     width: i32,
 
-    /// Set the height in pixels of the generated gif, default value is '-1' which
-    /// keeps the aspect ratio of the input file
+    /// Set the height in pixels of the generated gif, use '-1' to keep the aspect ratio of the input file
     #[structopt(long, default_value = "-1")]
     height: i32,
     
