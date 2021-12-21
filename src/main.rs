@@ -3,6 +3,7 @@ use std::process::Command;
 use structopt::StructOpt;
 
 #[derive(StructOpt)]
+#[structopt(global_setting = structopt::clap::AppSettings::AllowNegativeNumbers)]
 struct CommandLineArguments {
     /// The path to the file to convert
     #[structopt(parse(from_os_str))]
@@ -39,6 +40,10 @@ struct CommandLineArguments {
     /// Don't adjust the framerate, overwrites the `framerate` argument
     #[structopt(long)]
     keep_framerate: bool,
+
+    /// How many times to restart the gif, '-1' for looping forever, '0' for playing once, '1' for playing twice, etc.
+    #[structopt(long="loop", default_value = "-1")]
+    loop_count: i32,
 }
 
 fn main() {
@@ -65,6 +70,9 @@ fn main() {
         } else {
             Some(args.framerate)
         },
+        if args.loop_count == 0 { -1 }
+        else if args.loop_count == -1 { 0 }
+        else { args.loop_count }
     );
 }
 
@@ -74,6 +82,7 @@ fn ffmpeg_command(
     width: i32,
     height: i32,
     framerate: Option<u32>,
+    loop_count: i32
 ) {
     // Filter graph definition inspired by https://superuser.com/questions/556029/how-do-i-convert-a-video-to-gif-using-ffmpeg-with-reasonable-quality/
 
@@ -99,6 +108,8 @@ fn ffmpeg_command(
     let _ = Command::new("ffmpeg")
         .arg("-i")
         .arg(&input_file)
+        .arg("-loop")
+        .arg(loop_count.to_string())
         .arg("-vf")
         .arg(filtergraph)
         .arg(&output_file)
