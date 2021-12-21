@@ -2,6 +2,8 @@
 name = "gifify"
 version = "0.1.0"
 edition = "2018"
+authors = ["Berik Visschers <berik@visschers.nu>"]
+description = "Encode a movie file to gif, specialized for demos, feature presentations, bug reports etc."
 
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 

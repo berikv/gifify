@@ -1,6 +1,6 @@
 # gifify
 
-Encode a movie file to gif, specialised for demos, feature presentations, bugreports etc.
+Encode a movie file to gif, specialized for demos, feature presentations, bug reports etc.
 
 ## Install
 
