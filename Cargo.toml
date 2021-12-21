@@ -9,3 +9,4 @@ repository = "https://github.com/berikv/gifify"
 
 [dependencies]
 structopt = "0.3"
+ctrlc = "3.2"

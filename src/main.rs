@@ -1,4 +1,5 @@
 
+use std::fs;
 use structopt::StructOpt;
 use std::path::PathBuf;
 use std::process::Command;
@@ -38,7 +39,7 @@ fn ffmpeg_command(input_file: PathBuf, output_file: PathBuf) {
     tmp_filename.set_extension("png");
     let tmpfile = temp_dir().with_file_name(tmp_filename.file_name().unwrap());
 
-    println!("using tmp file {}", tmpfile.display());
+    println!("Create palette file {}", tmpfile.display());
 
     let status = Command::new("ffmpeg")
         .arg("-i").arg(&input_file)
@@ -53,6 +54,11 @@ fn ffmpeg_command(input_file: PathBuf, output_file: PathBuf) {
         panic!("Failed to create palette")
     }
 
+    // Having this handler removes the tmpfile if ctrl-c is pressed.
+    // I can't explain why though.. Probably something related to forks.
+    ctrlc::set_handler(move || println!("Stopping for Ctrl-C"))
+        .expect("Error setting Ctrl-C handler");
+
     let _ = Command::new("ffmpeg")
         .arg("-i").arg(&input_file)
         .arg("-i").arg(&tmpfile)
@@ -61,6 +67,7 @@ fn ffmpeg_command(input_file: PathBuf, output_file: PathBuf) {
         .status()
         .expect("failed to create gif");
 
-    use std::fs;
-    let _ = fs::remove_file(tmpfile);
+    println!("Removing palette file {}", tmpfile.display());
+    fs::remove_file(tmpfile)
+        .expect("Could not remove temporary file")
 }
