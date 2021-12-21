@@ -13,12 +13,16 @@ struct CommandLineArguments {
     // Output file
     #[structopt(short="o", parse(from_os_str))]
     output_file: Option<PathBuf>,
+
+    // Create a Webm instead of a gif, since its almost 2022
+    #[structopt(long)]
+    webm: bool,
 }
 
 fn main() {
     let args = CommandLineArguments::from_args();
     let mut default_output_file = args.input_file.clone();
-    default_output_file.set_extension("gif");
+    default_output_file.set_extension(if args.webm {"webm"} else {"gif"});
     let output_file = args.output_file.unwrap_or(default_output_file);
 
     println!("in {} out {}", args.input_file.display(), output_file.display());

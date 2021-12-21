@@ -17,3 +17,7 @@ On mac, using homebrew:
 
     # Creates ~/Desktop/Screen\ Recording\ 2021-12-21\ at\ 16.16.58.gif 
     gifify ~/Desktop/Screen\ Recording\ 2021-12-21\ at\ 16.16.58.mov
+
+    # Make a webm instead of a gif.
+    # Webm is much smaller than gif, but STILL not fully supported on Apple devices.
+    gifify --webm Cat.mov -o canihazcheeze.webm
