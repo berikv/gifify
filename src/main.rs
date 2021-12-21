@@ -8,19 +8,19 @@ struct CommandLineArguments {
     #[structopt(parse(from_os_str))]
     input_file: PathBuf,
 
-    /// Output file
+    /// Output file, overwrites `webm`
     #[structopt(short = "o", parse(from_os_str))]
     output_file: Option<PathBuf>,
 
-    /// Create a Webm instead of a gif, since its almost 2022
+    /// Create a WebM instead of a gif, since its almost 2022
     #[structopt(long)]
     webm: bool,
 
-    /// Exact width in pixels of the generated gif
+    /// Set the width in pixels of the generated gif
     #[structopt(long, default_value = "320")]
     width: i32,
 
-    /// Exact height in pixels of the generated gif, default value is '-1' which
+    /// Set the height in pixels of the generated gif, default value is '-1' which
     /// keeps the aspect ratio of the input file
     #[structopt(long, default_value = "-1")]
     height: i32,
@@ -33,7 +33,7 @@ struct CommandLineArguments {
     #[structopt(long)]
     keep_size: bool,
 
-    /// Set the framerate (default is 10)
+    /// Set the framerate
     #[structopt(long, default_value = "10")]
     framerate: u32,
 
@@ -77,7 +77,7 @@ fn ffmpeg_command(
     framerate: Option<u32>,
 ) {
     // Filter graph definition inspired by https://superuser.com/questions/556029/how-do-i-convert-a-video-to-gif-using-ffmpeg-with-reasonable-quality/
-    
+
     let fps_filter = framerate.map(|s| format!("fps={}", s));
 
     let scale_filter = if width == -1 && height == -1 {
@@ -88,9 +88,7 @@ fn ffmpeg_command(
 
     let palette_filter = Some("split[s0][s1];[s0]palettegen[p];[s1][p]paletteuse".to_string());
 
-    let filters = vec![fps_filter, scale_filter, palette_filter];
-
-    let filtergraph = filters
+    let filtergraph = vec![fps_filter, scale_filter, palette_filter]
         .into_iter()
         .filter(|filter| filter.is_some())
         .map(|filter| filter.unwrap())
