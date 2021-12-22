@@ -89,7 +89,8 @@ fn ffmpeg_command(
     let scale_filter = if width == -1 && height == -1 {
         None
     } else {
-        Some(format!("scale={}:{}:flags=lanczos", width, height))
+        // min(..., iw) to only scale down the width
+        Some(format!("scale='min({}, iw)':{}:flags=lanczos", width, height))
     };
 
     let palette_filter = Some("split[s0][s1];[s0]palettegen[p];[s1][p]paletteuse".to_string());
