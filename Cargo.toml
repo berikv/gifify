@@ -1,6 +1,6 @@
 [package]
 name = "gifify"
-version = "0.2.0"
+version = "0.2.1"
 edition = "2018"
 authors = ["Berik Visschers <berik@visschers.nu>"]
 description = "Encode a movie file to gif, specialized for demos, feature presentations, bug reports etc."
