@@ -2,7 +2,7 @@
 
 Encode a movie file to gif, specialized for demos, feature presentations, bug reports etc.
 
-![Screen recording as gif](Screen%20Recording.gif)
+![Screen recording as gif](doc/Screen%20Recording.gif)
 
 ## Install
 
@@ -28,6 +28,20 @@ On mac, using homebrew:
     # See all available options
     gifify --help
 
-## Mandatory cat gif
+## Mandatory cat gifs
 
-![Can I HAZ CHEEZE](IMG_7606.gif)
+    gifify IMG_7606.mov
+
+![Can I HAZ CHEEZE](doc/IMG_7606.gif)
+
+    gifify --speed 0.7 --framerate 6 IMG_7606.mov
+
+![Can I HAZ CHEEZE](doc/IMG_7606_0.7_6.gif)
+
+    gifify --speed 2 --framerate 20 --loop 5 IMG_7606.mov
+
+![Can I HAZ CHEEZE](doc/IMG_7606_2_20.gif)
+
+    gifify --speed 2 --framerate 20 --webm IMG_7606.mov
+
+![Can I HAZ CHEEZE](doc/IMG_7606_2_20.webm)

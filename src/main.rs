@@ -37,13 +37,13 @@ struct CommandLineArguments {
     #[structopt(long, default_value = "10")]
     framerate: u32,
 
-    /// Don't adjust the framerate, overwrites the `framerate` argument
-    #[structopt(long)]
-    keep_framerate: bool,
-
     /// How many times to restart the gif, '-1' for looping forever, '0' for playing once, '1' for playing twice, etc.
     #[structopt(long="loop", default_value = "-1")]
     loop_count: i32,
+
+    /// Slow down or speed up the gif playback speed, '1.5' means one and a half times faster. 
+    #[structopt(long)]
+    speed: Option<f32>,
 }
 
 fn main() {
@@ -65,14 +65,11 @@ fn main() {
         output_file,
         if args.keep_size { -1 } else { width },
         if args.keep_size { -1 } else { args.height },
-        if args.keep_framerate {
-            None
-        } else {
-            Some(args.framerate)
-        },
+        args.framerate,
         if args.loop_count == 0 { -1 }
         else if args.loop_count == -1 { 0 }
-        else { args.loop_count }
+        else { args.loop_count },
+        args.speed.unwrap_or(1.0)
     );
 }
 
@@ -81,12 +78,13 @@ fn ffmpeg_command(
     output_file: PathBuf,
     width: i32,
     height: i32,
-    framerate: Option<u32>,
-    loop_count: i32
+    framerate: u32,
+    loop_count: i32,
+    speed: f32,
 ) {
     // Filter graph definition inspired by https://superuser.com/questions/556029/how-do-i-convert-a-video-to-gif-using-ffmpeg-with-reasonable-quality/
 
-    let fps_filter = framerate.map(|s| format!("fps={}", s));
+    let fps_filter = Some(format!("fps={}", framerate as f32 / speed));
 
     let scale_filter = if width == -1 && height == -1 {
         None
@@ -96,7 +94,9 @@ fn ffmpeg_command(
 
     let palette_filter = Some("split[s0][s1];[s0]palettegen[p];[s1][p]paletteuse".to_string());
 
-    let filtergraph = vec![fps_filter, scale_filter, palette_filter]
+    let pts_filter = Some(format!("setpts={}*PTS[v]", 1.0 / speed / speed));
+
+    let filtergraph = vec![fps_filter, scale_filter, palette_filter, pts_filter]
         .into_iter()
         .filter(|filter| filter.is_some())
         .map(|filter| filter.unwrap())
