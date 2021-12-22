@@ -41,7 +41,3 @@ On mac, using homebrew:
     gifify --speed 2 --framerate 20 --loop 5 IMG_7606.mov
 
 ![Can I HAZ CHEEZE](doc/IMG_7606_2_20.gif)
-
-    gifify --speed 2 --framerate 20 --webm IMG_7606.mov
-
-![Can I HAZ CHEEZE](doc/IMG_7606_2_20.webm)
